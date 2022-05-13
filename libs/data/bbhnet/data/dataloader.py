@@ -83,6 +83,8 @@ class RandomWaveformDataset:
         sample_rate: float,
         batch_size: int,
         batches_per_epoch: int,
+        hanford_background_forwhitening: str = None,
+        livingston_background_forwhitening: str = None,
         waveform_sampler: Optional[WaveformSampler] = None,
         waveform_frac: float = 0,
         glitch_sampler: Union[GlitchSampler, str, None] = None,
@@ -187,7 +189,18 @@ class RandomWaveformDataset:
         self.livingston_background, livingston_asd, t0 = _load_background(
             livingston_background, sample_rate, device
         )
-
+        
+        
+        # load in alternative asd for background if specified so that 
+        # data can be whitened using a different asd (i.e. validation)
+        if hanford_background_forwhitening is not None: 
+            _, hanford_asd, _ = _load_background(
+            hanford_background_forwhitening, sample_rate, device) 
+            
+        if livingston_background_forwhitening is not None: 
+            _, livingston_asd, _ = _load_background(
+            livingston_background_forwhitening, sample_rate, device) 
+        
         assert len(self.hanford_background) == len(self.livingston_background)
         tf = t0 + len(self.hanford_background) / sample_rate
 
@@ -263,10 +276,10 @@ class RandomWaveformDataset:
             assert glitch_frac == 0
             self.num_glitches = 0
             self.glitch_sampler = None
-
-        # make sure that we have at least _some_
-        # pure background in each batch
-        assert (self.num_waveforms + self.num_glitches) < batch_size
+        
+        # allowing sample to contain background and glitches 
+        # or just be completely glitches 
+        assert (self.num_waveforms + self.num_glitches) <= batch_size
 
     def sample_from_background(self):  # , independent: bool = True):
         """Sample a batch of kernels from the background data

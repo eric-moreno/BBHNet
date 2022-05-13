@@ -50,7 +50,6 @@ def generate_gw(
     Args:
         sample_params: dictionary of GW parameters
         waveform_generator: bilby.gw.WaveformGenerator with appropriate params
-
     Returns:
         An (n_samples, 2, waveform_size) array, containing both polarizations
         for each of the desired number of samples. The first polarization is
@@ -103,7 +102,7 @@ def project_raw_gw(
     get_snr=False,
     noise_psd=None,
 ):
-    """Project a raw gravitational wave onto an intterferometer
+    """Project a raw gravitational wave onto an interferometer
 
     Args:
         raw_waveforms: the plus and cross polarizations of a list of GWs
