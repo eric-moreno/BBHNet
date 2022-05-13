@@ -50,6 +50,7 @@ def generate_gw(
     Args:
         sample_params: dictionary of GW parameters
         waveform_generator: bilby.gw.WaveformGenerator with appropriate params
+        
     Returns:
         An (n_samples, 2, waveform_size) array, containing both polarizations
         for each of the desired number of samples. The first polarization is
