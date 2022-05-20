@@ -30,7 +30,7 @@ def main(
         outdir: output directory to which signals will be written
         waveform_duration: length of injected waveforms
         sample_rate: sample rate of the signal in Hz
-        deterministic: Bool for whether data should be projected in a 
+        deterministic: Bool for whether data should be projected in a
                        detrministic way. Ex: training vs validation sets
 
     Returns:
@@ -61,7 +61,7 @@ def main(
     sample_params = priors.sample(n_samples)
 
     signals = generate_gw(sample_params, waveform_generator=waveform_generator)
-    
+
     # Write params and similar to output file
     prior_name = os.path.basename(prior_file)[:-6]
     signal_file = os.path.join(
@@ -83,13 +83,13 @@ def main(
                 "waveform_duration": waveform_duration,
             }
         )
-    
-    if deterministic: 
-        fixed_prior_file = f"fixed_prior_file.h5"
+
+    if deterministic:
+        fixed_prior_file = "fixed_prior_file.h5"
         with h5py.File(fixed_prior_file, "w") as f:
             for k, v in sample_params.items():
                 f.create_dataset(k, data=v)
-    
+
     return signal_file
 
 

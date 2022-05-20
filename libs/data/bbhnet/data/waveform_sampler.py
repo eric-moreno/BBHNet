@@ -86,7 +86,9 @@ class WaveformSampler:
         signals = signals.transpose(1, 2, 0) * weights
         return signals.transpose(2, 0, 1)
 
-    def sample(self, N: int, size: int, deterministic: Bool = False) -> np.ndarray:
+    def sample(
+        self, N: int, size: int, deterministic: bool = False
+    ) -> np.ndarray:
         if self.background_asd is None:
             raise RuntimeError(
                 "Must fit WaveformGenerator to background asd before sampling"
@@ -96,12 +98,11 @@ class WaveformSampler:
         # as sky localization parameters for computing
         # the antenna response in real-time
         idx = np.random.choice(len(self.waveforms), size=N, replace=False)
-        
-        
-        # For validation deterministic sky-projections we read in the 
+
+        # For validation deterministic sky-projections we read in the
         # fixed prior file specified in the waveform generation script
-        if deterministic: 
-            sample_params = h5py.File("fixed_prior_file.h5", 'r')
+        if deterministic:
+            sample_params = h5py.File("fixed_prior_file.h5", "r")
         else:
             sample_params = self.priors.sample(N)
 

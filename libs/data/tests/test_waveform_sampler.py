@@ -101,14 +101,13 @@ def test_waveform_sampler(
     results = sampler.sample(4, data_length)
     assert len(results) == 4
     assert all([i.shape == (len(ifos), data_length) for i in results])
-    
-    # test the determinstic sampling that will be used for 
-    # validation dataset 
-    
+
+    # test the determinstic sampling that will be used for
+    # validation dataset
+
     results = sampler.sample(4, data_length, deterministic=True)
     assert len(results) == 4
     assert all([i.shape == (len(ifos), data_length) for i in results])
-    
 
     # now sample using the entire waveforms to check
     # the SNR ranges. There's definitely a better,
