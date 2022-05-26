@@ -1,3 +1,4 @@
+from pathlib import Path
 from unittest.mock import patch
 
 import numpy as np
@@ -6,6 +7,8 @@ from gwpy.frequencyseries import FrequencySeries
 
 from bbhnet.data.waveform_sampler import WaveformSampler
 from bbhnet.injection.injection import calc_snr
+
+TEST_DIR = Path(__file__).resolve().parent
 
 
 @pytest.fixture(params=[10, 20])
@@ -105,7 +108,14 @@ def test_waveform_sampler(
     # test the determinstic sampling that will be used for
     # validation dataset
 
-    results = sampler.sample(4, data_length, deterministic=True)
+    results = sampler.sample(
+        4,
+        data_length,
+        deterministic=True,
+        fixed_prior_file=str(
+            TEST_DIR / "fixed_prior/fixed_prior_file_4096.h5"
+        ),
+    )
     assert len(results) == 4
     assert all([i.shape == (len(ifos), data_length) for i in results])
 

@@ -87,7 +87,11 @@ class WaveformSampler:
         return signals.transpose(2, 0, 1)
 
     def sample(
-        self, N: int, size: int, deterministic: bool = False
+        self,
+        N: int,
+        size: int,
+        deterministic: bool = False,
+        fixed_prior_file: str = "fixed_prior/fixed_prior_file_4096.h5",
     ) -> np.ndarray:
         if self.background_asd is None:
             raise RuntimeError(
@@ -102,9 +106,7 @@ class WaveformSampler:
         # For validation deterministic sky-projections we read in the
         # fixed prior file specified in the waveform generation script
         if deterministic:
-            sample_params = h5py.File(
-                "../../fixed_prior/fixed_prior_file_4096.h5", "r"
-            )
+            sample_params = h5py.File(fixed_prior_file, "r")
         else:
             sample_params = self.priors.sample(N)
 
