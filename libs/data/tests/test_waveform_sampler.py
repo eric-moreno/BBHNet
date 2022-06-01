@@ -111,8 +111,7 @@ def test_waveform_sampler(
     results = sampler.sample(
         4,
         data_length,
-        deterministic=True,
-        fixed_prior_file=str(
+        fixed_skyparams_file=str(
             TEST_DIR / "fixed_prior/fixed_prior_file_4096.h5"
         ),
     )

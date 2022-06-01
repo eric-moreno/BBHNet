@@ -1,4 +1,5 @@
 import time
+from pathlib import Path
 from unittest.mock import patch
 
 import numpy as np
@@ -9,6 +10,8 @@ from gwpy.timeseries import TimeSeries
 from bbhnet.data import dataloader
 from bbhnet.data.glitch_sampler import GlitchSampler
 from bbhnet.data.waveform_sampler import WaveformSampler
+
+TEST_DIR = Path(__file__).resolve().parent
 
 
 @pytest.fixture
@@ -280,6 +283,73 @@ def test_waveform_sampling(
         waveform_frac=waveform_frac,
         batches_per_epoch=10,
         device=device,
+    )
+    expected_num = max(1, int(waveform_frac * batch_size))
+    assert dataset.num_waveforms == expected_num
+
+    dataset.hanford_background *= 0
+    dataset.livingston_background *= 0
+
+    if dataset.num_waveforms > 10:
+        with pytest.raises(ValueError):
+            next(iter(dataset))
+        return
+
+    for X, y in dataset:
+        X = X.cpu().numpy()
+        y = y.cpu().numpy()
+        for i, x in enumerate(X):
+            # check to make sure ifo is not all 0s
+            is_background = (x == 0).all(axis=-1)
+
+            # check that either this sample is one of the
+            # first `num_glitches` in the batch or does not
+            # have a glitch
+            limit = batch_size - dataset.num_waveforms
+            assert (i >= limit) ^ (is_background.all())
+            assert y[i] == int(not is_background.all())
+
+    if device == "cpu":
+        return
+
+    dataset.batches_per_epoch = 100
+    start_time = time.time()
+    for _ in dataset:
+        continue
+    end_time = time.time()
+    assert ((end_time - start_time) / 100) < 0.05
+
+
+def test_waveform_sampling_validation(
+    random_hanford_background,
+    random_livingston_background,
+    sine_waveforms,
+    waveform_frac,
+    sample_rate,
+    device,
+):
+    waveform_sampler = WaveformSampler(
+        sine_waveforms, sample_rate, min_snr=20, max_snr=40
+    )
+
+    # initialize dataset with random data so
+    # that we have a valid whitening filter,
+    # but zero the background out later so that
+    # we can check the waveforms
+    batch_size = 32
+    dataset = dataloader.RandomWaveformDataset(
+        random_hanford_background,
+        random_livingston_background,
+        kernel_length=1,
+        sample_rate=sample_rate,
+        batch_size=batch_size,
+        waveform_sampler=waveform_sampler,
+        waveform_frac=waveform_frac,
+        batches_per_epoch=10,
+        device=device,
+        fixed_skyparams_file=str(
+            TEST_DIR / "fixed_prior/fixed_prior_file_4096.h5"
+        ),
     )
     expected_num = max(1, int(waveform_frac * batch_size))
     assert dataset.num_waveforms == expected_num

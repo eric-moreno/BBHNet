@@ -90,8 +90,7 @@ class WaveformSampler:
         self,
         N: int,
         size: int,
-        deterministic: bool = False,
-        fixed_prior_file: str = "fixed_prior/fixed_prior_file_4096.h5",
+        fixed_skyparams_file: str = None,
     ) -> np.ndarray:
         if self.background_asd is None:
             raise RuntimeError(
@@ -105,10 +104,10 @@ class WaveformSampler:
 
         # For validation deterministic sky-projections we read in the
         # fixed prior file specified in the waveform generation script
-        if deterministic:
-            sample_params = h5py.File(fixed_prior_file, "r")
-        else:
+        if fixed_skyparams_file is None:
             sample_params = self.priors.sample(N)
+        else:
+            sample_params = h5py.File(fixed_skyparams_file, "r")[:N]
 
         # initialize the output array and a dummy object
         # which has a couple attributes expected by the

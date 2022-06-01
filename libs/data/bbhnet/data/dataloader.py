@@ -90,6 +90,7 @@ class RandomWaveformDataset:
         glitch_sampler: Union[GlitchSampler, str, None] = None,
         glitch_frac: float = 0,
         device: torch.device = "cuda",
+        fixed_skyparams_file=None,
     ) -> None:
         """Iterable dataset which can sample and inject auxiliary data
 
@@ -373,7 +374,9 @@ class RandomWaveformDataset:
         # generated waveforms to sample from
         if self.waveform_sampler is not None:
             waveforms = self.waveform_sampler.sample(
-                self.num_waveforms, self.kernel_size
+                self.num_waveforms,
+                self.kernel_size,
+                fixed_skyparams_file=self.fixed_skyparams_file,
             )
             waveforms = np.stack(waveforms)
             waveforms = torch.Tensor(waveforms).to(self.device)
