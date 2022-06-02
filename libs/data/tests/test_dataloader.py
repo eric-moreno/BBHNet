@@ -283,7 +283,6 @@ def test_waveform_sampling(
         waveform_frac=waveform_frac,
         batches_per_epoch=10,
         device=device,
-        fixed_skyparams_file=None,
     )
     expected_num = max(1, int(waveform_frac * batch_size))
     assert dataset.num_waveforms == expected_num
