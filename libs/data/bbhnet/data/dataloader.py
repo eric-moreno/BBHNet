@@ -181,6 +181,7 @@ class RandomWaveformDataset:
         self.batch_size = batch_size
         self.batches_per_epoch = batches_per_epoch
         self.device = device
+        self.fixed_skyparams_file = fixed_skyparams_file
 
         # load in the background data and build time-domain
         # filters for whitening using them
