@@ -107,7 +107,7 @@ class WaveformSampler:
         if fixed_skyparams_file is None:
             sample_params = self.priors.sample(N)
         else:
-            sample_params = h5py.File(fixed_skyparams_file, "r")[:N]
+            sample_params = h5py.File(fixed_skyparams_file, "r")
 
         # initialize the output array and a dummy object
         # which has a couple attributes expected by the
