@@ -1,3 +1,4 @@
+import pickle
 from dataclasses import dataclass
 from typing import Optional
 
@@ -106,8 +107,18 @@ class WaveformSampler:
         # fixed prior file specified in the waveform generation script
         if fixed_skyparams_file is None:
             sample_params = self.priors.sample(N)
+
+            # This was used to save the fixed sky params - should only need
+            # to be done once
+            # sample_params = self.priors.sample(32768)
+            # with open("fixed_sky_params.pkl","wb") as f:
+            #    pickle.dump(sample_params, f)
+
         else:
-            sample_params = h5py.File(fixed_skyparams_file, "r")
+            f = open(fixed_skyparams_file, "rb")
+            sample_params = pickle.load(f)
+            for key in sample_params.keys():
+                sample_params[key] = sample_params[key][:N]
 
         # initialize the output array and a dummy object
         # which has a couple attributes expected by the
@@ -122,6 +133,7 @@ class WaveformSampler:
         # the background asds passed to `.fit`, compute
         # its response to the waveform given the sky
         # localization parameters
+
         for i, ifo in enumerate(self.ifos):
             signal = project_raw_gw(
                 self.waveforms[idx],

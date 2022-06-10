@@ -96,11 +96,11 @@ def main(
             }
         )
 
-    if deterministic:
-        fixed_prior_file = "fixed_prior_file.h5"
-        with h5py.File(fixed_prior_file, "w") as f:
-            for k, v in sample_params.items():
-                f.create_dataset(k, data=v)
+    # if deterministic:
+    #    fixed_prior_file = "fixed_prior_file.h5"
+    #    with h5py.File(fixed_prior_file, "w") as f:
+    #        for k, v in sample_params.items():
+    #            f.create_dataset(k, data=v)
 
     return signal_file
 

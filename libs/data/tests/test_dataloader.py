@@ -349,7 +349,7 @@ def test_waveform_sampling_validation(
         batches_per_epoch=10,
         device=device,
         fixed_skyparams_file=str(
-            TEST_DIR / "fixed_prior/fixed_prior_file_4096.h5"
+            TEST_DIR / "fixed_prior/fixed_sky_params.pkl"
         ),
     )
     expected_num = max(1, int(waveform_frac * batch_size))

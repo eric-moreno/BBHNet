@@ -138,6 +138,7 @@ def project_raw_gw(
     snr = np.zeros(n_sample)
 
     ifo = bilby.gw.detector.get_empty_interferometer(ifo)
+
     for i, p in enumerate(sample_params):
 
         # For less ugly function calls later on

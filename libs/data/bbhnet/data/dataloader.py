@@ -239,6 +239,7 @@ class RandomWaveformDataset:
 
         # if we specified a waveform sampler, fit its snr
         # computation to the given background asd
+
         if waveform_sampler is not None:
             assert waveform_frac > 0
 
