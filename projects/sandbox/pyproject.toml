@@ -3,18 +3,23 @@ steps = [
     "generate_background:generate-background",
     "generate_waveforms:generate-waveforms",
     "generate_glitches:generate-glitches",
-    "train:train:resnet"
+    "train:train:resnet",
+    "export:export:resnet",
+    "timeslide_injections:timeslide_injections",
+    "infer:infer"
 ]
 
 [tool.typeo.base]
 outdir = "${OUT_DIR}"
 sample_rate = 2048
 ifos = ['H1', 'L1']
-start = 1263588390 
-stop = 1263698390 
+start = 1262588390 
+stop = 1262698390 
 channel = "DCS-CALIB_STRAIN_CLEAN_C01"
 frame_type = "HOFT_C01"
 state_flag = "DCS-ANALYSIS_READY_C01:1"
+resnet = {layers = [4, 4, 4]}
+repository_directory = "/home/ethan.marx/path/to/model/dir"
 
 
 [tool.typeo.scripts.generate-background]
@@ -62,28 +67,71 @@ waveform_duration = 8
 force_generation = false
 
 [tool.typeo.scripts.train]
-
 hanford_background = "${base.outdir}/data/H1_background.h5"
 livingston_background = "${base.outdir}/data/L1_background.h5"
 glitch_dataset = "${base.outdir}/data/glitches.h5"
 signal_dataset = "${base.outdir}/data/signals.h5"
 outdir = "${base.outdir}/training"
-
+fduration = 1
+trigger_distance_size = -0.5
 sample_rate = "${base.sample_rate}"
-waveform_frac = 0.4
-glitch_frac = 0.4
+waveform_frac = 0.5
+glitch_frac = 0.3
 min_snr = 4
 max_snr = 1000
 highpass = 32
-kernel_length = 1 
-batch_size = 32
+kernel_length = 2
+batch_size = 64
 batches_per_epoch = 300
-max_epochs = 100
+max_epochs = 50
 lr = 3.2e-2
 weight_decay = 1e-5
-patience = 25
+patience = 10
 factor = 0.2
 early_stop = 100
 device = "cuda"
 profile = false
-commands.resnet = {layers = [2, 2, 2]}
+commands.resnet = "${base.resnet}"
+
+
+[tool.typeo.scripts.export]
+repository_directory = "${base.repository_directory}" 
+output_directory = "${base.outdir}/export"
+num_ifos = 2 
+kernel_length = "${base.kernel_length}" 
+inference_sampling_rate = "${base.inference_sampling_rate}"
+sample_rate = "${base.sample_rate}"
+streams_per_gpu = 1
+verbose = true
+commands.resnet = "${base.resnet}"
+
+[tool.typeo.scripts.timeslide_injections]
+start = "${base.start}"  
+stop = "${base.stop}" 
+
+outdir = "${base.outdir}/timeslide_injections/"
+prior_file = "/home/ethan.marx/forks/BBHNet/projects/sandbox/timeslide_injections/priors/nonspin_BBH.prior"
+spacing = 60
+buffer = 10
+n_slides = 100
+shifts = [0, 1]
+ifos = "${base.ifos}"
+file_length = 4096
+fmin = "${base.fmin}" 
+sample_rate = "${base.sample_rate}"
+channel = "${base.channel}"
+frame_type = "${base.frame_type}" 
+state_flag = "${base.state_flag}"
+
+[tool.typeo.scripts.infer]
+model_repo_dir = "${base.repository_directory}"
+model_name = "bbhnet"
+data_dir = "${base.outdir}/timeslide_injections/" 
+field = "injection"
+sample_rate = "${base.sample_rate}"
+inference_sampling_rate = 16
+num_workers = 4
+model_version = 1
+base_sequence_id = 1001
+log_file = "${base.outdir}/infer"
+verbose = true

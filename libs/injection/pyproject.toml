@@ -9,11 +9,12 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.11"
+python = ">=3.8,<3.11"
 bilby = "^1.1.5"
 lalsuite = "^7.4"
 
-"bbhnet.base" = {path = "../base", extras = ["gwpy"], develop = true}
+"bbhnet.base" = {path = "../base", extras = ["gwpy", "numpy"], develop = true}
+"bbhnet.io" ={ path = "../io",  develop = true}
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2"
