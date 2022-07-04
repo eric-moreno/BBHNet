@@ -63,7 +63,7 @@ def project_raw_gw(
     get_snr=False,
     noise_psd=None,
 ):
-    """Project a raw gravitational wave onto an intterferometer
+    """Project a raw gravitational wave onto an interferometer
 
     Args:
         raw_waveforms: the plus and cross polarizations of a list of GWs
@@ -98,6 +98,7 @@ def project_raw_gw(
     snr = np.zeros(n_sample)
 
     ifo = bilby.gw.detector.get_empty_interferometer(ifo)
+
     for i, p in enumerate(sample_params):
 
         # For less ugly function calls later on

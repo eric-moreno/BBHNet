@@ -32,11 +32,14 @@ class RandomWaveformDataset:
         sample_rate: float,
         batch_size: int,
         batches_per_epoch: int,
+        hanford_background_forwhitening: str = None,
+        livingston_background_forwhitening: str = None,
         waveform_sampler: Optional[WaveformSampler] = None,
         waveform_frac: float = 0,
         glitch_sampler: Union[GlitchSampler, str, None] = None,
         glitch_frac: float = 0,
         trigger_distance: float = 0,
+        fixed_skyparams_file=None,
     ) -> None:
         """Iterable dataset which can sample and inject auxiliary data
 
@@ -133,6 +136,7 @@ class RandomWaveformDataset:
         self.kernel_size = int(kernel_length * sample_rate)
         self.batch_size = batch_size
         self.batches_per_epoch = batches_per_epoch
+        self.fixed_skyparams_file = fixed_skyparams_file
 
         # load in the background data
         hanford_background, t0 = _load_background(hanford_background)
@@ -148,6 +152,7 @@ class RandomWaveformDataset:
 
         # if we specified a waveform sampler, fit its snr
         # computation to the given background asd
+
         if waveform_sampler is not None:
             assert waveform_frac > 0
             self.fit_waveform_sampler(waveform_sampler, t0)
@@ -184,9 +189,9 @@ class RandomWaveformDataset:
         # tensors to the device at lower precision
         self.device = "cpu"
 
-        # make sure that we have at least _some_
-        # pure background in each batch
-        assert (self.num_waveforms + self.num_glitches) < batch_size
+        # allowing sample to contain background and glitches
+        # or just be completely glitches
+        assert (self.num_waveforms + self.num_glitches) <= batch_size
 
     def fit_waveform_sampler(
         self, waveform_sampler: WaveformSampler, t0: float
@@ -300,6 +305,7 @@ class RandomWaveformDataset:
                 self.num_waveforms,
                 self.kernel_size,
                 self.trigger_distance_size,
+                fixed_skyparams_file=self.fixed_skyparams_file,
             )
             waveforms = np.stack(waveforms)
             waveforms = torch.Tensor(waveforms).to(self.device)

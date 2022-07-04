@@ -1,3 +1,4 @@
+from pathlib import Path
 from unittest.mock import patch
 
 import numpy as np
@@ -6,6 +7,8 @@ from gwpy.frequencyseries import FrequencySeries
 
 from bbhnet.data.waveform_sampler import WaveformSampler
 from bbhnet.injection.injection import calc_snr
+
+TEST_DIR = Path(__file__).resolve().parent
 
 
 @pytest.fixture(params=[10, 20])
@@ -94,6 +97,19 @@ def test_waveform_sampler(
     # of gaussian to the waves so that there's a unique
     # max value we can check for?
     results = sampler.sample(4, data_length, 100)
+    assert len(results) == 4
+    assert all([i.shape == (len(ifos), data_length) for i in results])
+
+    # test the determinstic sampling that will be used for
+    # validation dataset
+
+    results = sampler.sample(
+        4,
+        data_length,
+        fixed_skyparams_file=str(
+            TEST_DIR / "fixed_prior/fixed_sky_params.pkl"
+        ),
+    )
     assert len(results) == 4
     assert all([i.shape == (len(ifos), data_length) for i in results])
 

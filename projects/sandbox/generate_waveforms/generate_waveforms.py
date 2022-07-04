@@ -22,6 +22,7 @@ def main(
     outdir: Path,
     waveform_duration: float = 8,
     sample_rate: float = 4096,
+    deterministic: bool = False,
     force_generation: bool = False,
     verbose: bool = False,
 ):
@@ -34,6 +35,8 @@ def main(
         outdir: output directory to which signals will be written
         waveform_duration: length of injected waveforms
         sample_rate: sample rate of the signal in Hz
+        deterministic: Bool for whether data should be projected in a
+                       detrministic way. Ex: training vs validation sets
         force_generation: if True, generate signals even if path already exists
     Returns:
         path to output file

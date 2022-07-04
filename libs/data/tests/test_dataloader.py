@@ -1,4 +1,5 @@
 import time
+from pathlib import Path
 from unittest.mock import patch
 
 import numpy as np
@@ -9,6 +10,8 @@ from gwpy.frequencyseries import FrequencySeries
 from bbhnet.data import dataloader
 from bbhnet.data.glitch_sampler import GlitchSampler
 from bbhnet.data.waveform_sampler import WaveformSampler
+
+TEST_DIR = Path(__file__).resolve().parent
 
 
 def mock_asd(data_length, sample_rate):
@@ -243,6 +246,7 @@ def test_waveform_sampling(
     )
 
     batch_size = 32
+
     with patch(
         "gwpy.timeseries.TimeSeries.asd",
         return_value=mock_asd(data_length, sample_rate),
@@ -256,8 +260,60 @@ def test_waveform_sampling(
             waveform_sampler=waveform_sampler,
             waveform_frac=waveform_frac,
             batches_per_epoch=10,
+            fixed_skyparams_file=None,
         )
         dataset.to(device)
+
+    expected_num = max(1, int(waveform_frac * batch_size))
+    assert dataset.num_waveforms == expected_num
+
+    # if the dataset is going to request more waveforms
+    # than we have, a ValueError should get raised
+    if dataset.num_waveforms > 10:
+        with pytest.raises(ValueError):
+            next(iter(dataset))
+        return
+    validate_dataset(dataset, batch_size - dataset.num_waveforms, 1)
+
+    if device == "cpu":
+        return
+    validate_speed(dataset, N=100, limit=0.05)
+
+
+def test_waveform_sampling_validation(
+    ones_hanford_background,
+    ones_livingston_background,
+    sine_waveforms,
+    waveform_frac,
+    sample_rate,
+    data_length,
+    device,
+):
+    waveform_sampler = WaveformSampler(
+        sine_waveforms, sample_rate, min_snr=20, max_snr=40
+    )
+
+    batch_size = 32
+
+    with patch(
+        "gwpy.timeseries.TimeSeries.asd",
+        return_value=mock_asd(data_length, sample_rate),
+    ):
+        dataset = dataloader.RandomWaveformDataset(
+            ones_hanford_background,
+            ones_livingston_background,
+            kernel_length=1,
+            sample_rate=sample_rate,
+            batch_size=batch_size,
+            waveform_sampler=waveform_sampler,
+            waveform_frac=waveform_frac,
+            batches_per_epoch=10,
+            fixed_skyparams_file=str(
+                TEST_DIR / "fixed_prior/fixed_sky_params.pkl"
+            ),
+        )
+        dataset.to(device)
+
     expected_num = max(1, int(waveform_frac * batch_size))
     assert dataset.num_waveforms == expected_num
 
